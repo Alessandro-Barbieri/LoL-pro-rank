@@ -1,3 +1,4 @@
+import json
 import csv
 from datetime import datetime
 from operator import itemgetter
@@ -8,7 +9,6 @@ import numpy as np
 import matplotlib
 from math import sqrt
 import xmlrpc.client
-import pickle
 
 s = xmlrpc.client.ServerProxy('http://127.0.0.1:1234')
 multicall = xmlrpc.client.MultiCall(s)
@@ -16,7 +16,7 @@ multicall = xmlrpc.client.MultiCall(s)
 giocatori1 = {}
 giocatori = {}
 filename = 'lol pro rank - Foglio5.csv'
-with open(filename, 'rt', encoding = 'utf-8') as f:
+with open(filename, 'rt', encoding = 'utf-8-sig') as f:
     reader = csv.reader(f)
 
     for riga in reader:
@@ -25,7 +25,7 @@ with open(filename, 'rt', encoding = 'utf-8') as f:
 partite = []
 periodi = {}
 filename = 'lol pro rank - Foglio1.csv'
-with open(filename, 'rt', encoding = 'utf-8') as f:
+with open(filename, 'rt', encoding = 'utf-8-sig') as f:
     reader = csv.reader(f)
 
     for riga in reader:
@@ -116,6 +116,5 @@ s.WHR.iterate(200)
 for g in giocatori.keys():
     giocatori[g] = s.WHR.ratings_for_player(g)
 
-output = open('giocatori.pkl', 'wb')
-pickle.dump(giocatori, output)
-output.close()
+with open('giocatori.json', 'w', encoding='utf8') as file:
+    json.dump(giocatori, file, sort_keys = True, indent = 4, ensure_ascii = False)
