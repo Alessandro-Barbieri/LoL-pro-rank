@@ -2,7 +2,7 @@
 require "xmlrpc/server"
 require 'whole_history_rating'
 
-$whr = WholeHistoryRating::Base.new
+$whr = WholeHistoryRating::Base.new(:w2 => 60)
 
 class WHR
 	def iterate(n)
