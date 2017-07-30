@@ -33,9 +33,8 @@ ordinati = sorted(g, key = itemgetter(1) , reverse = False)
 lunghezza = len(ordinati)
 conteggio = np.arange(lunghezza)
 
-N=50
 xN = 2
-yN = 60
+yN = lunghezza * 30 / 800
 matplotlib.rc('font', family = 'Unifont')
 
 pyplot.figure(1)
@@ -46,13 +45,15 @@ params.set_size_inches((plSize[0]*xN, plSize[1]*yN))
 err = [c[3] for c in ordinati]
 pyplot.errorbar([c[2] for c in ordinati], conteggio, xerr = err, fmt = 'ro')
 
+pyplot.axis('tight')
 pyplot.grid(which='both', axis='both')
 pyplot.yticks(conteggio, ['/'.join(inv_giocatori1[c[0]]) for c in ordinati])
-pyplot.tick_params(axis = 'both', labelsize = 'large')
-pyplot.savefig("test.pdf", format = "pdf")
+pyplot.tick_params(axis = 'both')
+pyplot.savefig("test.pdf", format = "pdf", bbox_inches='tight')
 
 pyplot.figure(2)
 
+N=50
 xN = 2
 yN = 2
 params = pyplot.gcf()
@@ -67,5 +68,5 @@ for g in ordinati[-25:]:
 
 legend = pyplot.legend(loc = 'lower left')
 pyplot.tick_params(axis = 'both', labelsize = 'large')
-pyplot.savefig("test1.pdf", format = "pdf")
+pyplot.savefig("test1.pdf", bbox_inches='tight', format = "pdf")
 #pyplot.show()
