@@ -1,23 +1,10 @@
 import json
-import csv
 from operator import itemgetter
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as pyplot
 from matplotlib.dates import date2num
-
-giocatori1 = {}
-filename = 'lol pro rank - Foglio5.csv'
-with open(filename, 'rt', encoding = 'utf-8-sig') as f:
-	reader = csv.reader(f)
-
-	for riga in reader:
-		giocatori1[riga[1]] = (riga[2], riga[3])
-
-inv_giocatori1 = {}
-for k, v in giocatori1.items():
-	inv_giocatori1.setdefault(v[0], []).append(k)
 
 with open('giocatori.json', encoding = 'utf-8-sig') as j:
 	mydict2 = json.load(j)
@@ -69,4 +56,3 @@ for g in ordinati[-25:]:
 legend = pyplot.legend(loc = 'lower left')
 pyplot.tick_params(axis = 'both', labelsize = 'large')
 pyplot.savefig("test1.pdf", bbox_inches='tight', format = "pdf")
-#pyplot.show()
