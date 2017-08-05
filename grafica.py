@@ -4,16 +4,18 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as pyplot
+from datetime import datetime
 from matplotlib.dates import date2num
 
 with open('giocatori.json', encoding = 'utf-8-sig') as j:
-	mydict2 = json.load(j)
+	storico = json.load(j)
 
 g = []
-for p in mydict2.keys():
-	mi = mydict2[p][-1][1]
-	sigma = mydict2[p][-1][2]
-	g.append((p, mi - 2*sigma, mi, 2*sigma))
+for nome, val in storico.items():
+	l = sorted(list(val['date'].items()))
+	mi = l[-1][1][0]
+	sigma = l[-1][1][1]
+	g.append((nome, mi - 3*sigma, mi, 3*sigma))
 
 ordinati = sorted(g, key = itemgetter(1) , reverse = False)
 
@@ -34,7 +36,7 @@ pyplot.errorbar([c[2] for c in ordinati], conteggio, xerr = err, fmt = 'ro')
 
 pyplot.axis('tight')
 pyplot.grid(which='both', axis='both')
-pyplot.yticks(conteggio, ['/'.join(inv_giocatori1[c[0]]) for c in ordinati])
+pyplot.yticks(conteggio, ['/'.join(storico[c[0]]['alias']) for c in ordinati])
 pyplot.tick_params(axis = 'both')
 pyplot.savefig("test.pdf", format = "pdf", bbox_inches='tight')
 
@@ -48,9 +50,11 @@ plSize = params.get_size_inches()
 params.set_size_inches((plSize[0]*xN, plSize[1]*yN))
 
 for g in ordinati[-25:]:
-	x = [(i[0]) for i in mydict2[g[0]]]
-	y = [(i[1] - 2 * i[2]) for i in mydict2[g[0]]]
-	l = '/'.join(inv_giocatori1[g[0]])
+	n = g[0]
+	l = sorted(list(storico[n]['date'].items()))
+	x = [(datetime.strptime(i[0], '%Y-%m-%d')) for i in l]
+	y = [(i[1][0] - 3 * i[1][1]) for i in l]
+	l = '/'.join(storico[n]['alias'])
 	pyplot.plot(x, y, '-', drawstyle = 'steps', label = l)
 
 legend = pyplot.legend(loc = 'lower left')
