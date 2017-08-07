@@ -3,6 +3,8 @@ from trueskill import Rating, rate, setup
 from trueskill.backends import available_backends
 from datetime import datetime
 from collections import defaultdict
+from math import floor
+from operator import itemgetter
 
 if 'mpmath' in available_backends():
     setup(backend='mpmath')
@@ -13,6 +15,7 @@ with open(filename, 'rt', encoding = 'utf-8-sig') as f:
 	reader = csv.reader(f)
 	for riga in reader:
 		da_alias_a_nome[riga[1]] = (riga[2], riga[3])
+
 
 da_nomi_ad_alias = defaultdict(list)
 for a in da_alias_a_nome.keys():
@@ -67,7 +70,7 @@ for i in partite:
 			squadra1[persona1] = punteggi[persona1]
 			squadra2[persona2] = punteggi[persona2]
 
-	ris1, ris2 = rate([squadra1, squadra2], ranks=[r1, 2])
+	ris1, ris2 = rate([squadra1, squadra2], ranks=[r1, r2])
 	t = i[0][0].date().isoformat()
 	for p1 in ris1.keys():
 		s = ris1[p1].sigma
@@ -83,3 +86,28 @@ for i in partite:
 
 with open('giocatori.json', 'w', encoding='utf8') as file:
 	json.dump(storico, file, sort_keys = True, indent = "\t", ensure_ascii = False)
+
+g = []
+for nome, val in storico.items():
+	l = sorted(list(val['date'].items()))
+	mi = l[-1][1][0]
+	sigma = l[-1][1][1]
+	r = mi - 3*sigma
+	g.append((r, '/'.join(val['alias'])))
+
+ordinati = sorted(g, reverse=True)
+
+lista = []
+for i in ordinati:
+	r = i[0]
+	if r <= 0:
+		r = 0
+	elif r >= 50:
+		r = 50
+	else:
+		r = int(floor(r))
+	lista.append((r, i[1]))
+
+with open('risultati.tsv', 'w', newline='', encoding='utf8') as f:
+    writer = csv.writer(f, dialect='excel-tab')
+    writer.writerows(lista)
