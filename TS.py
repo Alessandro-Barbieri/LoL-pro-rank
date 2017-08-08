@@ -1,4 +1,4 @@
-import csv, json
+import csv, json, glob
 from trueskill import Rating, rate, setup
 from trueskill.backends import available_backends
 from datetime import datetime
@@ -39,15 +39,17 @@ def convris(r):
 		raise ValueError("non esiste il valore")
 
 partite = []
-filename = 'lol pro rank - Foglio1.csv'
-with open(filename, 'rt', encoding = 'utf-8-sig') as f:
-	reader = csv.reader(f)
-	for riga in reader:
-		inizio = datetime.strptime(riga[0], '%d/%m/%Y')
-		fine = datetime.strptime(riga[1], '%d/%m/%Y')
-		lista1 = riga[7:12]
-		lista2 = riga[12:17]
-		partite.append(((inizio, fine), int(riga[5]), int(riga[6]), lista1, lista2))
+for file in glob.glob('*.csv'):
+	if file == filename:
+    		continue
+	with open(file, 'rt', encoding = 'utf-8-sig') as f:
+		reader = csv.reader(f)
+		for riga in reader:
+			inizio = datetime.strptime(riga[0], '%d/%m/%Y')
+			fine = datetime.strptime(riga[1], '%d/%m/%Y')
+			lista1 = riga[7:12]
+			lista2 = riga[12:17]
+			partite.append(((inizio, fine), int(riga[5]), int(riga[6]), lista1, lista2))
 
 punteggi = {}
 for i in partite:
