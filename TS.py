@@ -20,33 +20,19 @@ def convris(r):
 
 da_alias_a_nome = {}
 partite = []
-for file in glob.glob('partite*.csv'):
-	with open(file, 'rt', encoding = 'utf-8-sig') as f:
-		reader = csv.reader(f)
-		next(reader, None)
-		for riga in reader:
-			data = datetime.strptime(riga[6], '%Y-%m-%d %H:%M:%S')
-			squadra1 = riga[19].upper().split(",")
-			squadra2 = riga[20].upper().split(",")
-			try:
-				risultati=convris(riga[10])
-			except:
-				continue
-			partite.append((data, risultati, squadra1, squadra2))
-			for g in squadra1:
-				da_alias_a_nome[g] = g
-			for g in squadra2:
-				da_alias_a_nome[g] = g
-
-for file in glob.glob('giocatori*.csv'):
-	with open(file, 'rt', encoding = 'utf-8-sig') as f:
-		reader = csv.reader(f)
-		next(reader, None)
-		for riga in reader:
-			alias = riga[1].upper()
-			nome = riga[0].upper()
-			if alias in da_alias_a_nome.keys():
-				da_alias_a_nome[alias] = nome
+with open('partite.tsv', 'rt', encoding = 'utf-8-sig', ) as f:
+	reader = csv.reader(f, delimiter="\t")
+	for riga in reader:
+		data = datetime.strptime(riga[0], '%Y-%m-%d %H:%M:%S')
+		squadra1 = riga[3].upper().split(",")
+		squadra2 = riga[4].upper().split(",")
+		try:
+			risultati=convris(riga[2])
+		except:
+			continue
+		partite.append((data, risultati, squadra1, squadra2))
+		for g in chain(squadra1, squadra2):
+			da_alias_a_nome[g] = g.upper()
 
 da_nomi_ad_alias = defaultdict(list)
 for a in da_alias_a_nome.keys():
@@ -95,7 +81,7 @@ for i in sorted(partite, key=itemgetter(0)):
 		punteggi[p2] = ris2[p2]
 		storico[p2]['date'][t] = (m, s)
 
-with open('giocatori.json', 'w', encoding='utf8') as file:
+with open('storico.json', 'w', encoding='utf8') as file:
 	json.dump(storico, file, sort_keys = True, indent = "\t", ensure_ascii = False)
 
 g = []
@@ -120,5 +106,5 @@ for i in ordinati:
 	lista.append((r, i[1]))
 
 with open('risultati.tsv', 'w', newline='', encoding='utf8') as f:
-	writer = csv.writer(f, dialect='excel-tab')
+	writer = csv.writer(f, delimiter="\t", quoting=csv.QUOTE_ALL)
 	writer.writerows(lista)

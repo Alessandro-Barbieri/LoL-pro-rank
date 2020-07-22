@@ -49,7 +49,7 @@ err = [c[3] for c in ordinati]
 
 fig = go.Figure()
 
-for g in ordinati[-50:]:
+for g in ordinati[-25:]:
 	n = g[0]
 	l = sorted(list(storico[n]['date'].items()))
 	x = [(datetime.strptime(i[0], '%Y-%m-%d')) for i in l]
