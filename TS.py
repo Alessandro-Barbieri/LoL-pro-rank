@@ -5,75 +5,84 @@ from datetime import datetime
 from collections import defaultdict
 from math import floor
 from operator import itemgetter
+from itertools import chain
 
 if 'mpmath' in available_backends():
     setup(backend='mpmath')
 
-da_alias_a_nome = {}
-filename = 'lol pro rank - Foglio5.csv'
-with open(filename, 'rt', encoding = 'utf-8-sig') as f:
-	reader = csv.reader(f)
-	for riga in reader:
-		da_alias_a_nome[riga[1]] = (riga[2], riga[3])
+def convris(r):
+	if r == "1":
+		return [0,1]
+	elif r == "2":
+		return [1,0]
+	else:
+		raise ValueError("non esiste il valore")
 
+da_alias_a_nome = {}
+partite = []
+for file in glob.glob('partite*.csv'):
+	with open(file, 'rt', encoding = 'utf-8-sig') as f:
+		reader = csv.reader(f)
+		next(reader, None)
+		for riga in reader:
+			data = datetime.strptime(riga[6], '%Y-%m-%d %H:%M:%S')
+			squadra1 = riga[19].upper().split(",")
+			squadra2 = riga[20].upper().split(",")
+			try:
+				risultati=convris(riga[10])
+			except:
+				continue
+			partite.append((data, risultati, squadra1, squadra2))
+			for g in squadra1:
+				da_alias_a_nome[g] = g
+			for g in squadra2:
+				da_alias_a_nome[g] = g
+
+for file in glob.glob('giocatori*.csv'):
+	with open(file, 'rt', encoding = 'utf-8-sig') as f:
+		reader = csv.reader(f)
+		next(reader, None)
+		for riga in reader:
+			alias = riga[1].upper()
+			nome = riga[0].upper()
+			if alias in da_alias_a_nome.keys():
+				da_alias_a_nome[alias] = nome
 
 da_nomi_ad_alias = defaultdict(list)
 for a in da_alias_a_nome.keys():
-	n = da_alias_a_nome[a][0]
+	n = da_alias_a_nome[a]
 	da_nomi_ad_alias[n].append(a)
 
 storico = defaultdict(dict)
 for a in da_alias_a_nome.keys():
-	n = da_alias_a_nome[a][0]
+	n = da_alias_a_nome[a]
 	if n not in storico:
 		storico[n] = {'alias': list(), 'date': defaultdict(list)}
 
 	storico[n]['alias'].append(a)
 
-def convris(r):
-	if r == 0:
-		return 1
-	elif r == 1:
-		return 0
-	else:
-		raise ValueError("non esiste il valore")
-
-partite = []
-for file in glob.glob('*.csv'):
-	if file == filename:
-    		continue
-	with open(file, 'rt', encoding = 'utf-8-sig') as f:
-		reader = csv.reader(f)
-		for riga in reader:
-			inizio = datetime.strptime(riga[0], '%d/%m/%Y')
-			fine = datetime.strptime(riga[1], '%d/%m/%Y')
-			lista1 = riga[7:12]
-			lista2 = riga[12:17]
-			partite.append(((inizio, fine), int(riga[5]), int(riga[6]), lista1, lista2))
-
 punteggi = {}
-for i in partite:
-	r1 = convris(i[1])
-	r2 = convris(i[2])
-	lista1 = i[3]
-	lista2 = i[4]
+for i in sorted(partite, key=itemgetter(0)):
+	giocatori1 = i[2]
+	giocatori2 = i[3]
 	squadra1 = dict()
 	squadra2 = dict()
-	for alias1 in lista1:
-		persona1 = da_alias_a_nome[alias1][0]
+	for alias1 in giocatori1:
+		persona1 = da_alias_a_nome[alias1]
 		if not persona1 in punteggi:
 			punteggi[persona1] = Rating()
 
-		for alias2 in lista2:
-			persona2 = da_alias_a_nome[alias2][0]
+		for alias2 in giocatori2:
+			persona2 = da_alias_a_nome[alias2]
 			if not persona2 in punteggi:
 				punteggi[persona2] = Rating()
 
 			squadra1[persona1] = punteggi[persona1]
 			squadra2[persona2] = punteggi[persona2]
 
-	ris1, ris2 = rate([squadra1, squadra2], ranks=[r1, r2])
-	t = i[0][0].date().isoformat()
+	ris1, ris2 = rate([squadra1, squadra2], ranks=i[1])
+
+	t = i[0].date().isoformat()
 	for p1 in ris1.keys():
 		s = ris1[p1].sigma
 		m = ris1[p1].mu
@@ -94,7 +103,7 @@ for nome, val in storico.items():
 	l = sorted(list(val['date'].items()))
 	mi = l[-1][1][0]
 	sigma = l[-1][1][1]
-	r = mi - 3*sigma
+	r = mi - 2*sigma
 	g.append((r, '/'.join(val['alias'])))
 
 ordinati = sorted(g, reverse=True)
@@ -111,5 +120,5 @@ for i in ordinati:
 	lista.append((r, i[1]))
 
 with open('risultati.tsv', 'w', newline='', encoding='utf8') as f:
-    writer = csv.writer(f, dialect='excel-tab')
-    writer.writerows(lista)
+	writer = csv.writer(f, dialect='excel-tab')
+	writer.writerows(lista)
