@@ -102,6 +102,7 @@ ENV/
 
 .pkl
 
-partite*.csv
-giocatori*.csv
+*.csv
 *.png
+*.json
+partite.tsv
