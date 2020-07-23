@@ -3,8 +3,8 @@ import csv
 
 site = mwclient.Site('lol.gamepedia.com', path="/")
 limite = 500
-i = 0
-with open('partite.tsv', 'w', newline='', encoding='utf8') as file:
+i = 588
+with open('partite2.tsv', 'w', newline='', encoding='utf8') as file:
 	writer = csv.writer(file, delimiter="\t", quoting=csv.QUOTE_ALL)
 	while True:
 		print(i)

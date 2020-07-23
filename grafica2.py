@@ -7,7 +7,7 @@ import numpy as np
 import plotly.io as pio
 
 
-with open('giocatori.json', encoding = 'utf-8-sig') as j:
+with open('storico.json', encoding = 'utf-8-sig') as j:
 	storico = json.load(j)
 
 g = []
@@ -49,12 +49,12 @@ err = [c[3] for c in ordinati]
 
 fig = go.Figure()
 
-for g in ordinati[-25:]:
+for g in ordinati[-10:]:
 	n = g[0]
 	l = sorted(list(storico[n]['date'].items()))
 	x = [(datetime.strptime(i[0], '%Y-%m-%d')) for i in l]
 	y = [(i[1][0] - 2 * i[1][1]) for i in l]
-	l = '/'.join(storico[n]['alias'])
+	l = n
 	fig.add_trace(go.Scatter(name = l, x = x, y = y))
 	#pyplot.plot(x, y, '-', drawstyle = 'steps', label = l)
 

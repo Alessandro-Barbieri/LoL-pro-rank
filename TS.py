@@ -2,7 +2,7 @@ import csv, json, glob
 from trueskill import Rating, rate, setup
 from trueskill.backends import available_backends
 from datetime import datetime
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from math import floor
 from operator import itemgetter
 from itertools import chain
@@ -10,65 +10,47 @@ from itertools import chain
 if 'mpmath' in available_backends():
     setup(backend='mpmath')
 
-def convris(r):
-	if r == "1":
-		return [0,1]
-	elif r == "2":
-		return [1,0]
-	else:
-		raise ValueError("non esiste il valore")
-
-da_alias_a_nome = {}
-partite = []
+storico = defaultdict(dict)
+partite = OrderedDict()
 with open('partite.tsv', 'rt', encoding = 'utf-8-sig', ) as f:
 	reader = csv.reader(f, delimiter="\t")
 	for riga in reader:
 		data = datetime.strptime(riga[0], '%Y-%m-%d %H:%M:%S')
-		squadra1 = riga[3].upper().split(",")
-		squadra2 = riga[4].upper().split(",")
-		try:
-			risultati=convris(riga[2])
-		except:
-			continue
-		partite.append((data, risultati, squadra1, squadra2))
-		for g in chain(squadra1, squadra2):
-			da_alias_a_nome[g] = g.upper()
+		id = riga[1]
+		nome = riga[3]
+		risultato = riga[2]
+		if id not in partite.keys():
+			partite[id] = {'data': data, 'Yes': list(), 'No': list()}
 
-da_nomi_ad_alias = defaultdict(list)
-for a in da_alias_a_nome.keys():
-	n = da_alias_a_nome[a]
-	da_nomi_ad_alias[n].append(a)
-
-storico = defaultdict(dict)
-for a in da_alias_a_nome.keys():
-	n = da_alias_a_nome[a]
-	if n not in storico:
-		storico[n] = {'alias': list(), 'date': defaultdict(list)}
-
-	storico[n]['alias'].append(a)
+		#try:
+		partite[id][risultato].append(nome)
+		#except:
+		#	continue
+		if nome not in storico:
+			storico[nome] = {'date': defaultdict(list)}
 
 punteggi = {}
-for i in sorted(partite, key=itemgetter(0)):
-	giocatori1 = i[2]
-	giocatori2 = i[3]
+for k,v in partite.items():
 	squadra1 = dict()
 	squadra2 = dict()
-	for alias1 in giocatori1:
-		persona1 = da_alias_a_nome[alias1]
-		if not persona1 in punteggi:
-			punteggi[persona1] = Rating()
+	vincitori = v['Yes']
+	perdenti = v['No']
 
-		for alias2 in giocatori2:
-			persona2 = da_alias_a_nome[alias2]
-			if not persona2 in punteggi:
-				punteggi[persona2] = Rating()
+	for g in vincitori:
+		if not g in punteggi.keys():
+			punteggi[g] = Rating()
 
-			squadra1[persona1] = punteggi[persona1]
-			squadra2[persona2] = punteggi[persona2]
+		squadra1[g] = punteggi[g]
 
-	ris1, ris2 = rate([squadra1, squadra2], ranks=i[1])
+	for g in perdenti:
+		if not g in punteggi.keys():
+			punteggi[g] = Rating()
 
-	t = i[0].date().isoformat()
+		squadra2[g] = punteggi[g]
+
+	t = v['data'].date().isoformat()
+#	print(t, k)
+	ris1, ris2 = rate([squadra1, squadra2], ranks = [1,2])
 	for p1 in ris1.keys():
 		s = ris1[p1].sigma
 		m = ris1[p1].mu
@@ -90,10 +72,9 @@ for nome, val in storico.items():
 	mi = l[-1][1][0]
 	sigma = l[-1][1][1]
 	r = mi - 2*sigma
-	g.append((r, '/'.join(val['alias'])))
+	g.append((r, nome))
 
 ordinati = sorted(g, reverse=True)
-
 lista = []
 for i in ordinati:
 	r = i[0]
